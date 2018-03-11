@@ -119,6 +119,16 @@
   version = "v2.6.0"
 
 [[projects]]
+  name = "github.com/ethereum/go-ethereum"
+  packages = [
+    "common/hexutil",
+    "log",
+    "rpc"
+  ]
+  revision = "b8b9f7f4476a30a0aaf6077daade6ae77f969960"
+  version = "v1.8.2"
+
+[[projects]]
   branch = "master"
   name = "github.com/fluffle/goirc"
   packages = [
@@ -157,6 +167,12 @@
   packages = ["."]
   revision = "63235f23494bf20d713a585bce40b2a0675c2f77"
   version = "2.2.0"
+
+[[projects]]
+  name = "github.com/go-stack/stack"
+  packages = ["."]
+  revision = "259ab82a6cad3992b4e21ff5cac294ccb06474bc"
+  version = "v1.7.0"
 
 [[projects]]
   name = "github.com/go-telegram-bot-api/telegram-bot-api"
@@ -356,6 +372,12 @@
   revision = "e9ff06f347d3f5d0013d59ed83754f0e88de10d4"
 
 [[projects]]
+  name = "github.com/rs/cors"
+  packages = ["."]
+  revision = "feef513b9575b32f84bafa580aad89b011259019"
+  version = "v1.3.0"
+
+[[projects]]
   name = "github.com/simplepush/simplepush-go"
   packages = ["."]
   revision = "9b5259670030f6b85979c107c6ad5bae27145c17"
@@ -410,7 +432,8 @@
     "html/atom",
     "idna",
     "lex/httplex",
-    "proxy"
+    "proxy",
+    "websocket"
   ]
   revision = "d25186b37f34ebdbbea8f488ef055638dfab272d"
 
@@ -481,6 +504,12 @@
   version = "v0.1.0"
 
 [[projects]]
+  branch = "v2"
+  name = "gopkg.in/natefinch/npipe.v2"
+  packages = ["."]
+  revision = "c1b8fa8bdccecb0b8db834ee0b92fdbcfa606dd6"
+
+[[projects]]
   branch = "master"
   name = "layeh.com/gumble"
   packages = [
@@ -494,6 +523,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "2d1f2598e4ed430668b5210033548ac818350bf08c202514622bd12a5bbeac87"
+  inputs-digest = "b6dd7d203fdec7483c8007c10ef34c1823ec82ded21462c2bd73f14e80b32103"
   solver-name = "gps-cdcl"
   solver-version = 1
