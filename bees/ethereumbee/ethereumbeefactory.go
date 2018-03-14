@@ -91,11 +91,6 @@ func (factory *EthereumBeeFactory) Events() []bees.EventDescriptor {
 					Description: "The block timestamp",
 					Type:        "string",
 				},
-				{
-					Name:        "nonce",
-					Description: "The block nonce",
-					Type:        "string",
-				},
 			},
 		},
 		{

@@ -74,6 +74,12 @@
   version = "0.9"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/btcsuite/btcd"
+  packages = ["btcec"]
+  revision = "2be2f12b358dc57d70b8f501b00be450192efbc3"
+
+[[projects]]
   name = "github.com/carlosdp/twiliogo"
   packages = ["."]
   revision = "f61c8230fa91b87ca5c16a21a661861208749dfe"
@@ -121,9 +127,22 @@
 [[projects]]
   name = "github.com/ethereum/go-ethereum"
   packages = [
+    ".",
+    "common",
     "common/hexutil",
+    "common/math",
+    "core/types",
+    "crypto",
+    "crypto/secp256k1",
+    "crypto/sha3",
+    "ethclient",
+    "ethdb",
     "log",
-    "rpc"
+    "metrics",
+    "params",
+    "rlp",
+    "rpc",
+    "trie"
   ]
   revision = "b8b9f7f4476a30a0aaf6077daade6ae77f969960"
   version = "v1.8.2"
@@ -191,6 +210,12 @@
   packages = ["proto"]
   revision = "925541529c1fa6821df4e44ce2723319eb2be768"
   version = "v1.0.0"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/golang/snappy"
+  packages = ["."]
+  revision = "553a641470496b2327abcac10b36396bd98e45c9"
 
 [[projects]]
   name = "github.com/google/go-github"
@@ -411,6 +436,25 @@
   version = "v1.2.1"
 
 [[projects]]
+  branch = "master"
+  name = "github.com/syndtr/goleveldb"
+  packages = [
+    "leveldb",
+    "leveldb/cache",
+    "leveldb/comparer",
+    "leveldb/errors",
+    "leveldb/filter",
+    "leveldb/iterator",
+    "leveldb/journal",
+    "leveldb/memdb",
+    "leveldb/opt",
+    "leveldb/storage",
+    "leveldb/table",
+    "leveldb/util"
+  ]
+  revision = "169b1b37be738edb2813dab48c97a549bcf99bb5"
+
+[[projects]]
   name = "github.com/technoweenie/multipartstreamer"
   packages = ["."]
   revision = "a90a01d73ae432e2611d178c18367fbaa13e0154"
@@ -505,6 +549,12 @@
 
 [[projects]]
   branch = "v2"
+  name = "gopkg.in/karalabe/cookiejar.v2"
+  packages = ["collections/prque"]
+  revision = "8dcd6a7f4951f6ff3ee9cbb919a06d8925822e57"
+
+[[projects]]
+  branch = "v2"
   name = "gopkg.in/natefinch/npipe.v2"
   packages = ["."]
   revision = "c1b8fa8bdccecb0b8db834ee0b92fdbcfa606dd6"
@@ -523,6 +573,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "9e94a10092dee528b9e87a74bc6491b3882b67efa4cd2c9dae7593cd54c61943"
+  inputs-digest = "eafa7ae446e1dd8191ae05d70a8d6024401714875e05ac5ac6243ad218d1eaa4"
   solver-name = "gps-cdcl"
   solver-version = 1

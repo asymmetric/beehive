@@ -24,10 +24,9 @@ package ethereumbee
 
 import (
 	"context"
-	"time"
 
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/muesli/beehive/bees"
 )
 
@@ -42,22 +41,17 @@ func (mod *EthereumBee) Run(eventChan chan bees.Event) {
 	url := mod.Options().Value("url").(string)
 	mod.Logf("connecting to %s\n", url)
 
-	// Timeout if the connection hasn't been established after 10 seconds.
-	clientCtx, clientCancel := context.WithTimeout(ctx, 10*time.Second)
-	defer clientCancel()
-
 	// TODO Sanitize input: if it contains leading spaces, this crashes.
-	c, err := rpc.DialContext(clientCtx, url)
+	c, err := ethclient.Dial(url)
 	if err != nil {
 		mod.LogErrorf("failed to start client: %v", err)
 		return
 	}
-	defer c.Close()
 
 	mod.Logf("connected")
 
 	// Channel for events from the JSONRPC endpoint.
-	subChan := make(chan map[string]string)
+	subChan := make(chan *types.Header)
 	// Channel for errors from the subscription goroutine.
 	errChan := make(chan error, 1)
 
@@ -69,9 +63,10 @@ func (mod *EthereumBee) Run(eventChan chan bees.Event) {
 
 	for {
 		select {
-		case ev := <-subChan:
-			if err := sendEvent(mod.Name(), ev, eventChan); err != nil {
+		case h := <-subChan:
+			if err := sendEvent(mod.Name(), h, eventChan); err != nil {
 				mod.LogErrorf("failed sending event: %v", err)
+				// TODO need to close the RPC connection!
 				return
 			}
 		case err := <-errChan:
@@ -87,8 +82,8 @@ func (mod *EthereumBee) ReloadOptions(options bees.BeeOptions) {
 	mod.SetOptions(options)
 }
 
-func subscribeHeads(ctx context.Context, client *rpc.Client, ch chan map[string]string) error {
-	sub, err := client.EthSubscribe(ctx, ch, "newHeads")
+func subscribeHeads(ctx context.Context, client *ethclient.Client, ch chan *types.Header) error {
+	sub, err := client.SubscribeNewHead(ctx, ch)
 	if err != nil {
 		return err
 	}
@@ -101,56 +96,35 @@ func subscribeHeads(ctx context.Context, client *rpc.Client, ch chan map[string]
 	}
 }
 
-func sendEvent(bee string, ev map[string]string, eventChan chan bees.Event) error {
-	num, err := hexutil.DecodeUint64(ev["number"])
-	if err != nil {
-		return err
-	}
-
-	tmp, err := hexutil.DecodeUint64(ev["timestamp"])
-	if err != nil {
-		return err
-	}
-	ts := int64(tmp)
-
-	nonce, err := hexutil.DecodeUint64(ev["nonce"])
-	if err != nil {
-		return err
-	}
-
+func sendEvent(bee string, h *types.Header, eventChan chan bees.Event) error {
 	event := bees.Event{
 		Bee:  bee,
 		Name: "new_block",
 		Options: []bees.Placeholder{
 			{
 				Name:  "number",
-				Type:  "uint64",
-				Value: num,
+				Type:  "string",
+				Value: h.Number.String(),
 			},
 			{
 				Name:  "difficulty",
 				Type:  "string",
-				Value: ev["difficulty"],
+				Value: h.Difficulty.String(),
 			},
 			{
 				Name:  "miner",
 				Type:  "string",
-				Value: ev["miner"],
+				Value: h.Coinbase.String(),
 			},
 			{
 				Name:  "parentHash",
 				Type:  "string",
-				Value: ev["parentHash"],
+				Value: h.ParentHash.String(),
 			},
 			{
 				Name:  "timestamp",
 				Type:  "string",
-				Value: time.Unix(ts, 0),
-			},
-			{
-				Name:  "nonce",
-				Type:  "string",
-				Value: nonce,
+				Value: h.Time.String(),
 			},
 		},
 	}
