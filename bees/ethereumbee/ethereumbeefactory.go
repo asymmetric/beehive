@@ -49,6 +49,12 @@ func (factory *EthereumBeeFactory) Options() []bees.BeeOptionDescriptor {
 			Type:        "string",
 			Mandatory:   true,
 		},
+		{
+			Name:        "address",
+			Description: "The address to watch",
+			Type:        "string",
+			Mandatory:   false,
+		},
 	}
 }
 

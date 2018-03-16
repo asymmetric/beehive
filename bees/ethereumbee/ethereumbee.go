@@ -24,7 +24,10 @@ package ethereumbee
 
 import (
 	"context"
+	"fmt"
+	"math/big"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/muesli/beehive/bees"
@@ -52,6 +55,9 @@ func (mod *EthereumBee) Run(eventChan chan bees.Event) {
 
 	// Channel for events from the JSONRPC endpoint.
 	subChan := make(chan *types.Header)
+	// Channel for balance change events.
+	blockNumChan := make(chan *big.Int)
+	balChan := make(chan *big.Int)
 	// Channel for errors from the subscription goroutine.
 	errChan := make(chan error, 1)
 
@@ -61,6 +67,24 @@ func (mod *EthereumBee) Run(eventChan chan bees.Event) {
 		}
 	}()
 
+	if addr := mod.Options().Value("address"); addr != nil {
+		addr := addr.(string)
+
+		if !common.IsHexAddress(addr) {
+			errChan <- err
+			return
+		}
+
+		mod.Logf("Watching address %s\n", addr)
+
+		go func() {
+			if err := pollBalance(ctx, c, blockNumChan, balChan, addr); err != nil {
+				errChan <- err
+				return
+			}
+		}()
+	}
+
 	for {
 		select {
 		case h := <-subChan:
@@ -69,6 +93,12 @@ func (mod *EthereumBee) Run(eventChan chan bees.Event) {
 				// TODO need to close the RPC connection!
 				return
 			}
+
+			// TODO only do this if someone is consuming.
+			blockNumChan <- h.Number
+		case bal := <-balChan:
+			mod.Logf("received balance: %s", bal.String())
+			// TODO emit event
 		case err := <-errChan:
 			mod.LogErrorf("subscription error: %v", err)
 			return
@@ -94,6 +124,38 @@ func subscribeHeads(ctx context.Context, client *ethclient.Client, ch chan *type
 	case err := <-sub.Err():
 		return err
 	}
+}
+
+// pollBalance performs a `BalanceAt` call every time a message is receive on the `blockNum` channel.
+// It then compares the current balance with the last one, and sends a message
+// on the `balChan` channel if the new one is greater than the last.
+func pollBalance(ctx context.Context, client *ethclient.Client, blockNum, balChan chan *big.Int, address string) error {
+	addr := common.HexToAddress(address)
+	lastNum := <-blockNum
+	lastBal := big.NewInt(0)
+
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case lastNum = <-blockNum:
+			bal, err := client.BalanceAt(ctx, addr, lastNum)
+			if err != nil {
+				// Due to intermittent error responses from the endpoint, we simply log
+				// and repeat the request in case of errors.
+				fmt.Printf("error requesting balance: %v\n", err)
+				continue
+			}
+
+			// If bal > lastBal.
+			if bal.Cmp(lastBal) == 1 {
+				lastBal = bal
+				balChan <- bal
+			}
+		}
+	}
+
+	return nil
 }
 
 func sendEvent(bee string, h *types.Header, eventChan chan bees.Event) error {
